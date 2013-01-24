@@ -13,33 +13,26 @@
 #define SLAVE_ADDR 5
 #define RELAY_ADDR 1
 #define TEMP_ADDR 0
+#define I2C_TEMP_ADDRESS 0b1001000
+#define I2C_TEMP_ADDRESS_BOJLER 0b1001111
 
 class Wireless
 {
 public:
 	Wireless();
-	inline static int16_t GetTemperature()
-	{
-		rfm::ApplicationLayer::Get(SLAVE_ADDR,TEMP_ADDR);
-		return TemperatureCache;
-	}
-	inline static void SetTopit(bool enabled)
-	{
-		rfm::ApplicationLayer::Set(SLAVE_ADDR, RELAY_ADDR, enabled);
-	}
-	inline static bool Responding() {return Response;}
 
 private:
-	static void arq_cb_error();
-	static void timeout_error(uint8_t slave);
-	static void user_cb(bool ok, rfm::ApplicationLayer::user_cb_packet_t type,
-			uint8_t address, uint16_t modbus_addr, uint32_t modbus_data);
+	const static rfm::ApplicationLayer::user_callbacks_t callbacks[3];
 
-	const static rfm::ApplicationLayer::error_cb_t errors;
-	const static rfm::ApplicationLayer::user_callbacks_t callbacks[2];
+	static void relay_cb(bool ok, rfm::ApplicationLayer::user_cb_packet_t type, uint8_t address,
+			uint16_t modbus_addr, uint32_t modbus_data);
+	static void RefreshTemperature(void * arg);
+	static void DisableHeating(void * arg);
+	static uint32_t Temperature;
+	static uint32_t TemperatureBojler;
+	static uint32_t Relay;
+	static chibios_rt::Timer * timer;
 
-	static int16_t TemperatureCache;
-	static bool Response;
 };
 
 #endif /* WIRELESS_H_ */
